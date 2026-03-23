@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if asset else 'New' }} Asset - IT Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('list_assets') }}" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h2 class="fw-bold mb-0">
+        <i class="bi bi-{{ 'pencil' if asset else 'plus-circle' }} me-2 text-primary"></i>
+        {{ 'Edit Asset' if asset else 'New Asset' }}
+    </h2>
+</div>
+
+<div class="card shadow-sm" style="max-width: 800px;">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Asset Tag <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="asset_tag"
+                           value="{{ asset.asset_tag if asset else '' }}"
+                           {{ 'readonly' if asset else '' }} required placeholder="e.g. HW-042">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Asset Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name"
+                           value="{{ asset.name if asset else '' }}" required
+                           placeholder="e.g. Dell Latitude 5540">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                    <select class="form-select" name="category" required>
+                        {% for cat in ['Hardware', 'Software', 'License', 'Network', 'Peripheral'] %}
+                        <option value="{{ cat }}" {% if asset and asset.category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Asset Type</label>
+                    <input type="text" class="form-control" name="asset_type"
+                           value="{{ asset.asset_type if asset else '' }}"
+                           placeholder="e.g. Laptop, Switch, License">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select class="form-select" name="status">
+                        {% for s in ['Active', 'In Repair', 'In Storage', 'Retired'] %}
+                        <option value="{{ s }}" {% if asset and asset.status == s %}selected{% elif not asset and s == 'Active' %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Manufacturer</label>
+                    <input type="text" class="form-control" name="manufacturer"
+                           value="{{ asset.manufacturer if asset else '' }}" placeholder="e.g. Dell, HP, Cisco">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Model</label>
+                    <input type="text" class="form-control" name="model"
+                           value="{{ asset.model if asset else '' }}" placeholder="e.g. Latitude 5540">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Serial Number</label>
+                    <input type="text" class="form-control" name="serial_number"
+                           value="{{ asset.serial_number if asset else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Cost ($)</label>
+                    <input type="number" step="0.01" class="form-control" name="cost"
+                           value="{{ asset.cost if asset else '' }}" placeholder="0.00">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Assigned To</label>
+                    <input type="text" class="form-control" name="assigned_to"
+                           value="{{ asset.assigned_to if asset else '' }}" placeholder="Employee name">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Location</label>
+                    <input type="text" class="form-control" name="location"
+                           value="{{ asset.location if asset else '' }}" placeholder="e.g. Building A - Floor 2">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Purchase Date</label>
+                    <input type="date" class="form-control" name="purchase_date"
+                           value="{{ asset.purchase_date if asset else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Warranty Expiry</label>
+                    <input type="date" class="form-control" name="warranty_expiry"
+                           value="{{ asset.warranty_expiry if asset else '' }}">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Notes</label>
+                    <textarea class="form-control" name="notes" rows="3"
+                              placeholder="Any additional information...">{{ asset.notes if asset else '' }}</textarea>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>
+                        {{ 'Save Changes' if asset else 'Create Asset' }}
+                    </button>
+                    <a href="{{ url_for('list_assets') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

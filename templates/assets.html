@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Assets - IT Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">
+        <i class="bi bi-list-ul me-2 text-primary"></i>Asset Inventory
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('new_asset') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Add Asset
+        </a>
+        <a href="{{ url_for('export_csv') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-download me-1"></i>Export CSV
+        </a>
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-upload me-1"></i>Import CSV
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="search" value="{{ search }}"
+                           placeholder="Search name, tag, serial, assignee...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="category">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if filter_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="status">
+                    <option value="">All Statuses</option>
+                    {% for s in statuses %}
+                    <option value="{{ s }}" {% if filter_status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{{ url_for('list_assets') }}" class="btn btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Asset Table -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Asset Tag</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Location</th>
+                        <th>Cost</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for asset in assets %}
+                    <tr>
+                        <td><code class="text-primary">{{ asset.asset_tag }}</code></td>
+                        <td>
+                            <div class="fw-semibold">{{ asset.name }}</div>
+                            {% if asset.manufacturer %}<small class="text-muted">{{ asset.manufacturer }} {{ asset.model or '' }}</small>{% endif %}
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ asset.category }}</span></td>
+                        <td>
+                            <span class="badge
+                                {% if asset.status == 'Active' %}bg-success
+                                {% elif asset.status == 'In Repair' %}bg-warning text-dark
+                                {% elif asset.status == 'Retired' %}bg-secondary
+                                {% else %}bg-info text-dark{% endif %}">
+                                {{ asset.status }}
+                            </span>
+                        </td>
+                        <td>{{ asset.assigned_to or '—' }}</td>
+                        <td><small>{{ asset.location or '—' }}</small></td>
+                        <td>{% if asset.cost %}${{ "%.2f"|format(asset.cost) }}{% else %}—{% endif %}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('edit_asset', asset_id=asset.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ url_for('delete_asset', asset_id=asset.id) }}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this asset?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            No assets found. <a href="{{ url_for('new_asset') }}">Add one now →</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if assets %}
+    <div class="card-footer text-muted small">
+        Showing {{ assets|length }} asset(s)
+    </div>
+    {% endif %}
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Import CSV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('import_csv') }}" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <p class="text-muted small">Upload a CSV file with columns: asset_tag, name, category, asset_type, manufacturer, model, serial_number, status, assigned_to, location, purchase_date, warranty_expiry, cost, notes</p>
+                    <input type="file" class="form-control" name="file" accept=".csv" required>
+                    <div class="form-text">Duplicate asset tags will be skipped.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
